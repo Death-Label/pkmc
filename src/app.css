@@ -340,7 +340,8 @@ input,textarea,select{font-family:inherit;color:inherit}
   display:flex;align-items:center;gap:14px;
   background:var(--surface);border:1px solid var(--border);
   border-radius:12px;padding:12px 14px;
-  transition:all .2s;cursor:pointer;position:relative;overflow:hidden;
+  transition:all .2s;cursor:pointer;position:relative;
+  /* sem overflow:hidden para a tooltip não ser cortada */
 }
 .game-card:hover{
   border-color:var(--border2);background:var(--surface2);

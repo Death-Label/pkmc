@@ -1,7 +1,7 @@
 /* ================================================================
    TRAINER'S LEDGER — Catálogo completo
-   Fontes cruzadas: Bulbapedia, Wikipedia, Nintendo Life
-   Apenas lançamentos físicos/colecionáveis (sem mobile/online-only)
+   Apenas lançamentos FÍSICOS com dados no cartucho/disco/CD-ROM.
+   Digitais, eShop-only e Game-Key Cards excluídos por padrão.
 ================================================================ */
 
 window.MAIN = [
@@ -57,14 +57,16 @@ window.MAIN = [
   { id:'sword',   name:'Pokémon Sword',                             platform:'Nintendo Switch',    year:2019, group:'Gen VIII — Galar' },
   { id:'shield',  name:'Pokémon Shield',                            platform:'Nintendo Switch',    year:2019, group:'Gen VIII — Galar' },
 
-  /* Gen IX — Paldea */
+  /* Gen IX — Paldea / Kalos */
   { id:'scarlet', name:'Pokémon Scarlet',                           platform:'Nintendo Switch',    year:2022, group:'Gen IX — Paldea' },
   { id:'violet',  name:'Pokémon Violet',                            platform:'Nintendo Switch',    year:2022, group:'Gen IX — Paldea' },
-  { id:'za',      name:'Pokémon Legends: Z-A',                      platform:'Nintendo Switch',    year:2025, group:'Gen IX — Paldea' },
+  { id:'za',      name:'Pokémon Legends: Z-A',                      platform:'Nintendo Switch / Switch 2', year:2025, group:'Gen IX — Paldea',
+    tip:'Lançado simultaneamente para Nintendo Switch e Switch 2 como SKUs físicos separados — dois cartuchos distintos. Colecionadores completos podem querer as duas versões.' },
 ];
 
 /* ================================================================
-   SPIN-OFFS COLECIONÁVEIS — Expandido, apenas físicos/cartuchos
+   SPIN-OFFS COLECIONÁVEIS — apenas físicos com dados no cartucho/disco
+   Excluídos: eShop-only, WiiWare, free-to-play digitais, Game-Key Cards
 ================================================================ */
 window.SPINOFF = [
   /* Stadium & Batalha */
@@ -87,15 +89,13 @@ window.SPINOFF = [
   /* Trading Card Game */
   { id:'tcg',    name:'Pokémon Trading Card Game',                  platform:'Game Boy Color',     year:1998, group:'Card Game' },
   { id:'tcg2',   name:'Pokémon Card GB2: Here Comes Team GR!',      platform:'Game Boy Color',     year:2001, region:'JP only', group:'Card Game' },
-  { id:'tcgl',   name:'Pokémon Trading Card Game Live',             platform:'Nintendo Switch',    year:2023, group:'Card Game' },
 
-  /* Mystery Dungeon */
+  /* Mystery Dungeon — apenas físicos */
   { id:'mdr',    name:'Pokémon Mystery Dungeon: Red Rescue Team',   platform:'Game Boy Advance',   year:2005, group:'Mystery Dungeon' },
   { id:'mdb',    name:'Pokémon Mystery Dungeon: Blue Rescue Team',  platform:'Nintendo DS',        year:2005, group:'Mystery Dungeon' },
   { id:'mdt',    name:'Pokémon Mystery Dungeon: Explorers of Time', platform:'Nintendo DS',        year:2007, group:'Mystery Dungeon' },
   { id:'mdd',    name:'Pokémon Mystery Dungeon: Explorers of Darkness', platform:'Nintendo DS',    year:2007, group:'Mystery Dungeon' },
   { id:'mdsky',  name:'Pokémon Mystery Dungeon: Explorers of Sky',  platform:'Nintendo DS',        year:2009, group:'Mystery Dungeon' },
-  { id:'mdwii',  name:'Pokémon Mystery Dungeon: Keep Going! Blazing Adventure Squad',  platform:'WiiWare',  year:2009, region:'JP only', group:'Mystery Dungeon' },
   { id:'mdgi',   name:'Pokémon Mystery Dungeon: Gates to Infinity', platform:'Nintendo 3DS',       year:2012, group:'Mystery Dungeon' },
   { id:'mdsmd',  name:'Pokémon Super Mystery Dungeon',              platform:'Nintendo 3DS',       year:2015, group:'Mystery Dungeon' },
   { id:'mddx',   name:'Pokémon Mystery Dungeon: Rescue Team DX',    platform:'Nintendo Switch',    year:2020, group:'Mystery Dungeon' },
@@ -105,16 +105,15 @@ window.SPINOFF = [
   { id:'rng2',   name:'Pokémon Ranger: Shadows of Almia',           platform:'Nintendo DS',        year:2008, group:'Ranger' },
   { id:'rng3',   name:'Pokémon Ranger: Guardian Signs',             platform:'Nintendo DS',        year:2010, group:'Ranger' },
 
-  /* Rumble (físicos) */
+  /* Rumble — apenas físicos (Rumble World era eShop-only, excluído) */
   { id:'rumbl',  name:'Pokémon Rumble Blast',                       platform:'Nintendo 3DS',       year:2011, group:'Rumble' },
   { id:'rumbu',  name:'Pokémon Rumble U',                           platform:'Wii U',              year:2013, group:'Rumble' },
-  { id:'rumbw',  name:'Pokémon Rumble World',                       platform:'Nintendo 3DS',       year:2016, group:'Rumble' },
 
   /* PokéPark */
   { id:'pp1',    name:"PokéPark Wii: Pikachu's Adventure",          platform:'Wii',                year:2009, group:'PokéPark' },
   { id:'pp2',    name:'PokéPark 2: Wonders Beyond',                 platform:'Wii',                year:2011, group:'PokéPark' },
 
-  /* Puzzle & Arcade */
+  /* Puzzle & Arcade — apenas físicos */
   { id:'pin1',   name:'Pokémon Pinball',                            platform:'Game Boy Color',     year:1999, group:'Puzzle & Arcade' },
   { id:'pzll',   name:'Pokémon Puzzle League',                      platform:'Nintendo 64',        year:2000, group:'Puzzle & Arcade' },
   { id:'pzlc',   name:'Pokémon Puzzle Challenge',                   platform:'Game Boy Color',     year:2000, group:'Puzzle & Arcade' },
@@ -122,13 +121,11 @@ window.SPINOFF = [
   { id:'dash',   name:'Pokémon Dash',                               platform:'Nintendo DS',        year:2004, group:'Puzzle & Arcade' },
   { id:'troz',   name:'Pokémon Trozei!',                            platform:'Nintendo DS',        year:2005, group:'Puzzle & Arcade' },
   { id:'ptroz',  name:'Pokémon Battle Trozei',                      platform:'Nintendo 3DS',       year:2014, group:'Puzzle & Arcade' },
-  { id:'pshuf',  name:'Pokémon Shuffle',                            platform:'Nintendo 3DS',       year:2015, group:'Puzzle & Arcade' },
-  { id:'cafe',   name:'Pokémon Café ReMix',                         platform:'Nintendo Switch',    year:2020, group:'Puzzle & Arcade' },
 
-  /* Hey You, Pikachu! & Pets */
+  /* Interativos físicos */
   { id:'hypik',  name:"Hey You, Pikachu!",                          platform:'Nintendo 64',        year:1998, group:'Pets & Interativos' },
-  { id:'pch',    name:"Pokémon Channel",                            platform:'Nintendo GameCube',  year:2003, group:'Pets & Interativos' },
-  { id:'pms',    name:"My Pokémon Ranch",                           platform:'Wii',                year:2008, group:'Pets & Interativos' },
+  { id:'ppy',    name:'Pokémon Play It!',                           platform:'PC CD-ROM',          year:1999, group:'Pets & Interativos' },
+  { id:'ppyv2',  name:'Pokémon Play It! Version 2',                 platform:'PC CD-ROM',          year:2000, group:'Pets & Interativos' },
 
   /* Aventura & Estratégia */
   { id:'conq',   name:'Pokémon Conquest',                           platform:'Nintendo DS',        year:2012, group:'Aventura & Estratégia' },
@@ -137,8 +134,7 @@ window.SPINOFF = [
   { id:'det1',   name:'Detective Pikachu',                          platform:'Nintendo 3DS',       year:2018, group:'Aventura & Estratégia' },
   { id:'det2',   name:'Detective Pikachu Returns',                  platform:'Nintendo Switch',    year:2023, group:'Aventura & Estratégia' },
 
-  /* Pikachu / GB handhelds peculiares */
-  { id:'pcgb',   name:'Pokémon Picross',                            platform:'Nintendo 3DS',       year:2015, group:'Puzzle & Arcade' },
-  { id:'ppy',    name:'Pokémon Play It!',                           platform:'PC CD-ROM',          year:1999, group:'Pets & Interativos' },
-  { id:'ppyv2',  name:'Pokémon Play It! Version 2',                 platform:'PC CD-ROM',          year:2000, group:'Pets & Interativos' },
+  /* Nintendo Switch 2 */
+  { id:'pokopia', name:'Pokémon Pokopia',                           platform:'Nintendo Switch 2',  year:2026, group:'Nintendo Switch 2',
+    tip:'Jogo de simulação de vida exclusivo do Switch 2. Atenção: o lançamento físico é um Game-Key Card — o cartucho é apenas uma chave de download; o jogo em si precisa ser baixado pela internet. Não contém dados do jogo no suporte físico, diferente de um cartucho tradicional.' },
 ];

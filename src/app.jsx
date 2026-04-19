@@ -250,8 +250,8 @@ function App() {
             <option value="all">Todos status</option>
             <option value="owned">Qualquer possuído</option>
             <option value="missing">Faltando</option>
-            <option value="have">Tenho</option>
             <option value="want">Quero</option>
+            <option value="have">Tenho</option>
             <option value="playing">Jogando</option>
             <option value="done">Zerado</option>
           </select>
