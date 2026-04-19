@@ -244,163 +244,161 @@ function ParticleCanvas({ theme, density = 60 }) {
     const cols = theme.particles;
     let particles = [];
 
-    /* ─── LUXURY: pó de ouro, formas grandes ascendentes ─── */
+    /* ─── LUXURY: ouro ascendente por toda a tela ─── */
     if (theme.id === 'luxury') {
       class GoldDust {
-        reset(fromBottom) {
+        reset() {
+          // nasce em qualquer ponto da tela — mais espalhado verticalmente
           this.x      = Math.random() * canvas.width;
-          this.y      = fromBottom
-            ? canvas.height + Math.random() * 40
-            : Math.random() * canvas.height;
-          this.r      = Math.random() * 4 + 2.5;          // 2.5–6.5 px
-          this.vx     = (Math.random() - 0.5) * 0.35;
-          this.vy     = -(Math.random() * 0.55 + 0.25);   // sobe sempre
+          this.y      = Math.random() * canvas.height;
+          this.r      = Math.random() * 5 + 2.5;
+          this.vx     = (Math.random() - 0.5) * 0.4;
+          this.vy     = -(Math.random() * 0.7 + 0.2);   // sobe com velocidades variadas
           this.rot    = Math.random() * Math.PI * 2;
-          this.rotSpd = (Math.random() - 0.5) * 0.025;
-          this.life   = fromBottom ? 0 : Math.floor(Math.random() * 280);
-          this.maxL   = Math.random() * 320 + 160;
-          this.maxA   = Math.random() * 0.55 + 0.2;
+          this.rotSpd = (Math.random() - 0.5) * 0.03;
+          // vida longa para cruzar a tela toda
+          this.maxL   = Math.random() * 500 + 300;
+          this.life   = Math.floor(Math.random() * this.maxL); // começa em fase aleatória
+          this.maxA   = Math.random() * 0.6 + 0.2;
           this.color  = cols[Math.floor(Math.random() * cols.length)];
-          this.shape  = Math.random() > 0.38 ? 'diamond' : 'circle';
+          this.shape  = Math.random() > 0.4 ? 'diamond' : 'circle';
         }
-        constructor() { this.reset(false); }
+        constructor() { this.reset(); }
         tick() {
           this.x   += this.vx;
           this.y   += this.vy;
           this.rot += this.rotSpd;
           this.life++;
           const t = this.life / this.maxL;
-          this.alpha = t < 0.15
-            ? (t / 0.15) * this.maxA
+          this.alpha = t < 0.12
+            ? (t / 0.12) * this.maxA
             : t > 0.8
               ? ((1 - t) / 0.2) * this.maxA
               : this.maxA;
-          if (this.life >= this.maxL || this.y < -20) this.reset(true);
+          if (this.life >= this.maxL || this.y < -30) this.reset();
         }
         draw() {
           ctx.save();
           ctx.globalAlpha = this.alpha;
           ctx.fillStyle   = this.color;
           ctx.shadowColor = this.color;
-          ctx.shadowBlur  = this.r * 6;
+          ctx.shadowBlur  = this.r * 7;
           ctx.translate(this.x, this.y);
           ctx.rotate(this.rot);
           if (this.shape === 'diamond') {
-            const s = this.r * 1.7;
+            const s = this.r * 1.8;
             ctx.beginPath();
-            ctx.moveTo(0, -s);
-            ctx.lineTo(s * 0.55, 0);
-            ctx.lineTo(0, s);
-            ctx.lineTo(-s * 0.55, 0);
-            ctx.closePath();
-            ctx.fill();
+            ctx.moveTo(0, -s); ctx.lineTo(s * 0.55, 0);
+            ctx.lineTo(0, s);  ctx.lineTo(-s * 0.55, 0);
+            ctx.closePath(); ctx.fill();
           } else {
-            ctx.beginPath();
-            ctx.arc(0, 0, this.r, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.beginPath(); ctx.arc(0, 0, this.r, 0, Math.PI * 2); ctx.fill();
           }
           ctx.restore();
         }
       }
       particles = Array.from({ length: density }, () => new GoldDust());
 
-    /* ─── SPECTRAL: fogos-fátuos com balanceio sinusoidal ─── */
+    /* ─── SPECTRAL: fogos-fátuos surgindo e apagando por toda a tela ─── */
     } else if (theme.id === 'spectral') {
       class WispFlame {
-        reset(fromBottom) {
+        reset() {
+          // posição totalmente aleatória em toda a tela — sem tendência de baixo
           this.x      = Math.random() * canvas.width;
-          this.y      = fromBottom
-            ? canvas.height + Math.random() * 50
-            : Math.random() * canvas.height;
-          this.r      = Math.random() * 5 + 3;            // 3–8 px
-          this.vy     = -(Math.random() * 0.45 + 0.2);
-          this.sway   = Math.random() * 0.9 + 0.3;
+          this.y      = Math.random() * canvas.height;
+          // movimento leve — deriva suave em qualquer direção
+          const ang   = Math.random() * Math.PI * 2;
+          const spd   = Math.random() * 0.3 + 0.05;
+          this.vx     = Math.cos(ang) * spd;
+          this.vy     = Math.sin(ang) * spd - 0.15; // leve tendência pra cima mas sutil
+          this.r      = Math.random() * 6 + 3;
+          this.sway   = Math.random() * 0.8 + 0.2;
           this.phase  = Math.random() * Math.PI * 2;
-          this.wobble = Math.random() * 0.04 + 0.02;
-          this.life   = fromBottom ? 0 : Math.floor(Math.random() * 260);
-          this.maxL   = Math.random() * 300 + 140;
-          this.maxA   = Math.random() * 0.5 + 0.18;
+          this.wobble = Math.random() * 0.03 + 0.015;
+          // vida variada — alguns aparecem e somem rápido, outros duram mais
+          this.maxL   = Math.random() * 400 + 150;
+          this.life   = Math.floor(Math.random() * this.maxL);
+          this.maxA   = Math.random() * 0.55 + 0.15;
           this.color  = cols[Math.floor(Math.random() * cols.length)];
         }
-        constructor() { this.reset(false); }
+        constructor() { this.reset(); }
         tick() {
-          this.x += Math.sin(this.life * this.wobble + this.phase) * this.sway;
+          this.x += this.vx + Math.sin(this.life * this.wobble + this.phase) * this.sway;
           this.y += this.vy;
           this.life++;
           const t = this.life / this.maxL;
-          this.alpha = t < 0.12
-            ? (t / 0.12) * this.maxA
-            : t > 0.68
-              ? ((1 - t) / 0.32) * this.maxA
+          // fade suave in/out — sem posição fixa na tela
+          this.alpha = t < 0.18
+            ? (t / 0.18) * this.maxA
+            : t > 0.65
+              ? ((1 - t) / 0.35) * this.maxA
               : this.maxA;
-          if (this.life >= this.maxL || this.y < -50) this.reset(true);
+          if (this.life >= this.maxL) this.reset();
         }
         draw() {
           ctx.save();
           ctx.globalAlpha = this.alpha;
           ctx.translate(this.x, this.y);
-          // leve inclinação de chama
-          ctx.rotate(Math.sin(this.life * this.wobble * 1.4 + this.phase) * 0.18);
+          ctx.rotate(Math.sin(this.life * this.wobble * 1.4 + this.phase) * 0.22);
           ctx.shadowColor = this.color;
-          ctx.shadowBlur  = this.r * 10;
-          // corpo da chama — forma de gota invertida
-          ctx.fillStyle = this.color;
-          ctx.beginPath();
+          ctx.shadowBlur  = this.r * 12;
+          ctx.fillStyle   = this.color;
           const r = this.r;
-          ctx.moveTo(0, -r * 2.6);
-          ctx.bezierCurveTo( r * 1.0, -r * 0.9,  r * 1.0,  r * 0.5, 0,  r * 1.1);
-          ctx.bezierCurveTo(-r * 1.0,  r * 0.5, -r * 1.0, -r * 0.9, 0, -r * 2.6);
-          ctx.closePath();
-          ctx.fill();
-          // miolo branco-azulado
-          ctx.globalAlpha = this.alpha * 0.55;
-          ctx.fillStyle   = '#E8D5FF';
           ctx.beginPath();
-          ctx.ellipse(0, -r * 0.5, r * 0.42, r * 0.7, 0, 0, Math.PI * 2);
+          ctx.moveTo(0, -r * 2.6);
+          ctx.bezierCurveTo( r, -r * 0.9,  r,  r * 0.5, 0,  r * 1.1);
+          ctx.bezierCurveTo(-r,  r * 0.5, -r, -r * 0.9, 0, -r * 2.6);
+          ctx.closePath(); ctx.fill();
+          // miolo brilhante
+          ctx.globalAlpha = this.alpha * 0.6;
+          ctx.fillStyle   = '#F0E0FF';
+          ctx.beginPath();
+          ctx.ellipse(0, -r * 0.5, r * 0.4, r * 0.65, 0, 0, Math.PI * 2);
           ctx.fill();
           ctx.restore();
         }
       }
       particles = Array.from({ length: density }, () => new WispFlame());
 
-    /* ─── MYTHIC: bolhas de sabão que estouram ─── */
+    /* ─── MYTHIC: bolhas distribuídas por toda a tela ─── */
     } else {
       class SoapBubble {
-        reset(fromBottom) {
+        reset() {
+          // nasce em qualquer lugar da tela
           this.x      = Math.random() * canvas.width;
-          this.y      = fromBottom
-            ? canvas.height + Math.random() * 60
-            : Math.random() * canvas.height;
-          this.r      = Math.random() * 18 + 7;           // 7–25 px
-          this.vx     = (Math.random() - 0.5) * 0.28;
-          this.vy     = -(Math.random() * 0.42 + 0.16);
-          this.drift  = Math.random() * 0.025 + 0.01;
+          this.y      = Math.random() * canvas.height;
+          this.r      = Math.random() * 20 + 6;
+          // direção aleatória — não só para cima
+          const ang   = Math.random() * Math.PI * 2;
+          const spd   = Math.random() * 0.35 + 0.08;
+          this.vx     = Math.cos(ang) * spd;
+          this.vy     = Math.sin(ang) * spd - 0.2; // leve flutuação pra cima
+          this.drift  = Math.random() * 0.02 + 0.008;
           this.phase  = Math.random() * Math.PI * 2;
-          this.life   = fromBottom ? 0 : Math.floor(Math.random() * 380);
-          this.maxL   = Math.random() * 420 + 220;
-          this.maxA   = Math.random() * 0.45 + 0.18;
+          this.maxL   = Math.random() * 500 + 250;
+          this.life   = Math.floor(Math.random() * this.maxL);
+          this.maxA   = Math.random() * 0.5 + 0.2;
           this.color  = cols[Math.floor(Math.random() * cols.length)];
           this.scale  = 1;
         }
-        constructor() { this.reset(false); }
+        constructor() { this.reset(); }
         tick() {
-          this.x += this.vx + Math.sin(this.life * this.drift + this.phase) * 0.22;
-          this.y += this.vy;
+          this.x += this.vx + Math.sin(this.life * this.drift + this.phase) * 0.4;
+          this.y += this.vy + Math.cos(this.life * this.drift * 0.7 + this.phase) * 0.2;
           this.life++;
           const t = this.life / this.maxL;
           if (t < 0.1) {
             this.scale = t / 0.1;
             this.alpha = (t / 0.1) * this.maxA;
-          } else if (t > 0.87) {
-            // estouro
-            const pt = (t - 0.87) / 0.13;
-            this.scale = 1 + pt * 1.8;
+          } else if (t > 0.85) {
+            const pt = (t - 0.85) / 0.15;
+            this.scale = 1 + pt * 2.2;
             this.alpha = (1 - pt) * this.maxA;
           } else {
             this.scale = 1;
             this.alpha = this.maxA;
           }
-          if (this.life >= this.maxL || this.y < -70) this.reset(true);
+          if (this.life >= this.maxL) this.reset();
         }
         draw() {
           const r = this.r * this.scale;
