@@ -4,6 +4,11 @@
 
 const LS_KEY = 'pokecollector-v3';
 
+// Guard defensivo caso algum arquivo de dados falhe ao carregar
+window.MAIN            = window.MAIN            || [];
+window.SPINOFF         = window.SPINOFF         || [];
+window.THEMED_CONSOLES = window.THEMED_CONSOLES || [];
+
 function loadState() {
   try { return JSON.parse(localStorage.getItem(LS_KEY) || '{}'); }
   catch(_) { return {}; }
@@ -18,6 +23,12 @@ function App() {
   const [notes, setNotes] = useState(() => loadState().notes || {});
   const [trainerName, setTrainerName] = useState(() => loadState().trainerName || 'Trainer');
   const [tab, setTab] = useState('main');
+
+  // Reset platform filter and sort when switching tabs
+  useEffect(() => {
+    setFilterPlatform('all');
+    setSort('default');
+  }, [tab]);
   const [mode, setMode] = useState('principal');
   const [sort, setSort] = useState('default');
   const [query, setQuery] = useState('');
@@ -27,6 +38,7 @@ function App() {
   const [showShare, setShowShare] = useState(false);
   const [drawerId, setDrawerId] = useState(null);
   const [themeOpen, setThemeOpen] = useState(false);
+  const [showArticle, setShowArticle] = useState(false);
 
   const theme = THEMES[themeId];
 
@@ -43,7 +55,7 @@ function App() {
   const setStatus = (id, st) => setStatusMap(m => ({ ...m, [id]: st }));
   const setNote   = (id, v)  => setNotes(n => ({ ...n, [id]: v }));
 
-  const activeList = tab === 'main' ? window.MAIN : window.SPINOFF;
+  const activeList = tab === 'main' ? window.MAIN : tab === 'spinoff' ? window.SPINOFF : window.THEMED_CONSOLES;
 
   const platforms = useMemo(() => {
     const set = new Set(activeList.map(g => g.platform));
@@ -71,23 +83,34 @@ function App() {
     if (sort === 'year-desc') list = [...list].sort((a,b)=>b.year-a.year);
     if (sort === 'az')        list = [...list].sort((a,b)=>a.name.localeCompare(b.name));
     if (sort === 'platform')  list = [...list].sort((a,b)=>a.platform.localeCompare(b.platform) || a.year-b.year);
+    // Consoles and spinoff tabs default: sort by year so groups appear chronologically
+    if ((tab === 'consoles' || tab === 'spinoff') && sort === 'default') list = [...list].sort((a,b)=>a.year-b.year);
     return list;
   }, [activeList, filterPlatform, filterStatus, query, sort, statusMap]);
 
   const grouped = useMemo(() => {
-    if (sort !== 'default') return null;
     const g = {};
     processed.forEach(item => {
-      (g[item.group] = g[item.group] || []).push(item);
+      let key;
+      if (sort === 'default')                          key = item.group;
+      else if (sort === 'platform')                    key = item.platform;
+      else if (sort === 'year-asc' || sort === 'year-desc') key = `${Math.floor(item.year / 10) * 10}s`;
+      else if (sort === 'az')                          key = item.name[0].toUpperCase();
+      else                                             key = item.group;
+      (g[key] = g[key] || []).push(item);
     });
     return g;
   }, [processed, sort]);
 
-  const scopedGames = mode === 'principal' ? window.MAIN : [...window.MAIN, ...window.SPINOFF];
+  const scopedGames = mode === 'principal'
+    ? window.MAIN
+    : mode === 'franquia'
+      ? [...window.MAIN, ...window.SPINOFF]
+      : [...window.MAIN, ...window.SPINOFF, ...window.THEMED_CONSOLES];
   const stats = useMemo(() => computeStats(scopedGames, statusMap), [scopedGames, statusMap]);
 
   const drawerGame = drawerId
-    ? [...window.MAIN, ...window.SPINOFF].find(g => g.id === drawerId)
+    ? [...window.MAIN, ...window.SPINOFF, ...window.THEMED_CONSOLES].find(g => g.id === drawerId)
     : null;
 
   const resetAll = () => {
@@ -95,6 +118,35 @@ function App() {
       setStatusMap({}); setNotes({});
     }
   };
+
+  const exportData = () => {
+    const data = { trainerName, statusMap, notes, themeId, version: 1 };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `trainers-ledger-backup-${Date.now()}.json`;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+  };
+
+  const importData = (file) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (data.statusMap) setStatusMap(data.statusMap);
+        if (data.notes)     setNotes(data.notes);
+        if (data.trainerName) setTrainerName(data.trainerName);
+        if (data.themeId)   setThemeId(data.themeId);
+      } catch(_) {
+        alert('Arquivo inválido. Use um backup gerado pelo Trainer\'s Ledger.');
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const importRef = useRef(null);
 
   return (
     <>
@@ -111,6 +163,9 @@ function App() {
             </div>
           </div>
           <div className="topbar-actions">
+            <button className="art-header-btn" onClick={()=>setShowArticle(true)}>
+              <span className="art-btn-ruble">₽</span> Guia de Investimento
+            </button>
             <input
               className="trainer-input"
               value={trainerName}
@@ -158,12 +213,21 @@ function App() {
               </div>
             </button>
             <button
+              className={`mode-pill ${mode==='franquia'?'active':''}`}
+              onClick={()=>setMode('franquia')}>
+              <span className="mode-dot"/>
+              <div>
+                <div className="mode-label">Colecionador da Franquia</div>
+                <div className="mode-sub">Série principal + todos os spin-offs</div>
+              </div>
+            </button>
+            <button
               className={`mode-pill ${mode==='completionist'?'active':''}`}
               onClick={()=>setMode('completionist')}>
               <span className="mode-dot"/>
               <div>
-                <div className="mode-label">Completionist Absoluto</div>
-                <div className="mode-sub">Série principal + todos os spin-offs</div>
+                <div className="mode-label">Colecionador Absoluto</div>
+                <div className="mode-sub">Jogos + spin-offs + consoles temáticos</div>
               </div>
             </button>
           </div>
@@ -216,6 +280,19 @@ function App() {
             <button className="btn-ghost-sm danger" onClick={resetAll}>
               <span>⌫</span> Limpar
             </button>
+            <button className="btn-ghost-sm" onClick={exportData}>
+              <span>↑</span> Exportar
+            </button>
+            <button className="btn-ghost-sm" onClick={()=>importRef.current?.click()}>
+              <span>↓</span> Importar
+            </button>
+            <input
+              ref={importRef}
+              type="file"
+              accept=".json"
+              style={{display:'none'}}
+              onChange={e=>{ importData(e.target.files[0]); e.target.value=''; }}
+            />
           </div>
         </section>
 
@@ -228,6 +305,10 @@ function App() {
           <button className={`tab ${tab==='spinoff'?'active':''}`} onClick={()=>setTab('spinoff')}>
             <span className="tab-label">Spin-offs</span>
             <span className="tab-count">{window.SPINOFF.length}</span>
+          </button>
+          <button className={`tab ${tab==='consoles'?'active':''}`} onClick={()=>setTab('consoles')}>
+            <span className="tab-label">Consoles Temáticos</span>
+            <span className="tab-count">{window.THEMED_CONSOLES.length}</span>
           </button>
         </div>
 
@@ -269,40 +350,28 @@ function App() {
           {processed.length === 0 && (
             <div className="empty">Nenhum jogo bate com esses filtros.</div>
           )}
-          {grouped ? (
-            Object.entries(grouped).map(([gname, items]) => (
-              <section key={gname} className="game-section">
-                <div className="sec-head">
-                  <span className="sec-title">{gname}</span>
-                  <div className="sec-rule"/>
-                  <span className="sec-badge">
-                    {items.filter(g => OWNED_STATUSES.has(statusMap[g.id])).length}
-                    <span>/</span>
-                    {items.length}
-                  </span>
-                </div>
-                <div className="games-grid">
-                  {items.map(g => (
-                    <GameCard key={g.id} game={g}
-                      status={statusMap[g.id] || 'none'}
-                      hasNote={!!notes[g.id]}
-                      onCycle={(st)=>setStatus(g.id, st)}
-                      onClick={()=>setDrawerId(g.id)}/>
-                  ))}
-                </div>
-              </section>
-            ))
-          ) : (
-            <div className="games-grid flat">
-              {processed.map(g => (
-                <GameCard key={g.id} game={g}
-                  status={statusMap[g.id] || 'none'}
-                  hasNote={!!notes[g.id]}
-                  onCycle={(st)=>setStatus(g.id, st)}
-                  onClick={()=>setDrawerId(g.id)}/>
-              ))}
-            </div>
-          )}
+          {Object.entries(grouped).map(([gname, items]) => (
+            <section key={gname} className="game-section">
+              <div className="sec-head">
+                <span className="sec-title">{gname}</span>
+                <div className="sec-rule"/>
+                <span className="sec-badge">
+                  {items.filter(g => OWNED_STATUSES.has(statusMap[g.id])).length}
+                  <span>/</span>
+                  {items.length}
+                </span>
+              </div>
+              <div className="games-grid">
+                {items.map(g => (
+                  <GameCard key={g.id} game={g}
+                    status={statusMap[g.id] || 'none'}
+                    hasNote={!!notes[g.id]}
+                    onCycle={(st)=>setStatus(g.id, st)}
+                    onClick={()=>setDrawerId(g.id)}/>
+                ))}
+              </div>
+            </section>
+          ))}
         </div>
 
         <footer className="footer">
@@ -314,8 +383,8 @@ function App() {
 
       {showStats && <StatsPanel games={scopedGames} statusMap={statusMap} onClose={()=>setShowStats(false)}/>}
       {showShare && <ShareCard theme={theme} stats={stats} trainerName={trainerName} onClose={()=>setShowShare(false)}/>}
-      {drawerGame && (
-        <DetailDrawer
+      {showArticle && <ArticleModal onClose={()=>setShowArticle(false)}/>}
+      {drawerGame && (        <DetailDrawer
           game={drawerGame}
           status={statusMap[drawerGame.id] || 'none'}
           note={notes[drawerGame.id] || ''}
