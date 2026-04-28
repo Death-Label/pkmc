@@ -1076,11 +1076,12 @@ body[data-mood="light"] .drawer{
   display:flex;align-items:center;justify-content:center;
   animation:fadeIn .3s ease;
   padding:20px;
+  overflow-y:auto;
 }
 
 /* ── BODY ── */
 .ee-gameboy{
-  width:min(420px, 90vw);
+  width:min(560px, 93vw);
   background:#c8c4b8;
   border-radius:12px 12px 0 0;
   box-shadow:
@@ -1093,6 +1094,7 @@ body[data-mood="light"] .drawer{
   position:relative;
   animation:popIn .35s cubic-bezier(.34,1.56,.64,1);
   padding-bottom:0;
+  margin:auto;
 }
 
 /* ── TOP SECTION ── */
@@ -1154,48 +1156,49 @@ body[data-mood="light"] .drawer{
 .ee-screen{
   background:#9bbc0f;
   border-radius:2px 2px 18px 18px;
-  height:calc(min(90vh,780px) - 310px);
-  min-height:200px;
-  max-height:380px;
-  padding:14px 13px 13px;
+  height:360px;
+  padding:16px 15px 14px;
   position:relative;
   font-family:'Press Start 2P',monospace;
   overflow:hidden;
   display:flex;flex-direction:column;
   box-shadow:inset 0 0 20px rgba(0,0,0,.2);
 }
+/* CRT scanlines — removed */
+.ee-screen::before{ display:none; }
+/* Pixel grid + vignette */
+.ee-screen::after{\n  content:'';\n  position:absolute;inset:0;z-index:3;pointer-events:none;\n  border-radius:inherit;\n}
 .ee-close-btn{
   position:absolute;top:5px;right:8px;
   background:none;border:none;cursor:pointer;
   font-size:.8rem;color:#0f380f;opacity:.35;
   font-family:'Press Start 2P',monospace;
-  line-height:1;padding:2px 4px;z-index:2;
+  line-height:1;padding:2px 4px;z-index:5;
 }
 .ee-close-btn:hover{opacity:.8}
 
 /* ── LOADING ── */
 .ee-loading{
   display:flex;align-items:center;justify-content:center;flex:1;
+  position:relative;z-index:4;
 }
 .ee-loading-text{
   font-size:.52rem;color:#0f380f;line-height:2;letter-spacing:1px;
 }
 
 /* ── TEXT ── */
-.ee-text-area{flex:1;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden}
+.ee-text-area{display:flex;flex-direction:column;flex:1;position:relative;z-index:4;}
 .ee-text-content{
-  font-size:.6rem;color:#0f380f;line-height:2.3;letter-spacing:.5px;
-  flex:1;overflow-y:auto;
-  /* hide scrollbar visually */
-  scrollbar-width:none;
-  -ms-overflow-style:none;
+  font-size:.54rem;color:#0f380f;line-height:2.2;letter-spacing:.4px;
+  /* LCD ghosting effect */
+  text-shadow:1px 0 2px rgba(15,56,15,.35), 0 1px 2px rgba(15,56,15,.25);
 }
-.ee-text-content::-webkit-scrollbar{display:none}
 .ee-cursor{animation:eeCursor .7s step-end infinite;color:#0f380f}
 @keyframes eeCursor{0%,100%{opacity:1}50%{opacity:0}}
 .ee-arrow{
   text-align:right;font-size:.52rem;color:#0f380f;
   animation:eeArrow .8s ease-in-out infinite;margin-top:6px;
+  position:relative;z-index:4;
 }
 @keyframes eeArrow{0%,100%{transform:translateY(0)}50%{transform:translateY(3px)}}
 

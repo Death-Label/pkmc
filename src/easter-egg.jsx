@@ -70,14 +70,7 @@ function EasterEgg({ onClose }) {
     return () => clearTimeout(typingRef.current);
   }, [phase]);
 
-  const textContentRef = useRef(null);
 
-  // Auto-scroll text area while typing
-  useEffect(() => {
-    if (textContentRef.current) {
-      textContentRef.current.scrollTop = textContentRef.current.scrollHeight;
-    }
-  }, [typed]);
   const close = useCallback(() => {
     if (audioRef.current) {
       audioRef.current.pause();
@@ -131,7 +124,7 @@ function EasterEgg({ onClose }) {
                   )}
                   {(phase === 'typing' || phase === 'done') && (
                     <div className="ee-text-area">
-                      <div className="ee-text-content" ref={textContentRef}>
+                      <div className="ee-text-content">
                         {renderText(typed)}
                         {phase === 'typing' && <span className="ee-cursor">█</span>}
                       </div>
