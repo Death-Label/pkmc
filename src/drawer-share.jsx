@@ -208,7 +208,6 @@ function ShareCard({ theme, stats, trainerName, onClose }) {
         </div>
         <div className="share-actions">
           <button className="btn-primary" onClick={download}>Baixar imagem</button>
-          <button className="btn-ghost" onClick={copyLink}>{copied ? '✓ Link copiado' : 'Copiar link'}</button>
         </div>
       </div>
     </div>

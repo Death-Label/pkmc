@@ -39,6 +39,8 @@ function App() {
   const [drawerId, setDrawerId] = useState(null);
   const [themeOpen, setThemeOpen] = useState(false);
   const [showArticle, setShowArticle] = useState(false);
+  const orbRef = useRef(null);
+  const [easterActive, closeEaster] = useEasterEgg(orbRef);
 
   const theme = THEMES[themeId];
 
@@ -156,7 +158,9 @@ function App() {
       <header className="topbar">
         <div className="topbar-inner">
           <div className="brand">
-            <PokeballOrb theme={theme} size={54}/>
+            <div ref={orbRef} style={{cursor:'default'}}>
+              <PokeballOrb theme={theme} size={54}/>
+            </div>
             <div className="brand-text">
               <div className="brand-eyebrow">Luxury Collection</div>
               <h1 className="brand-title">Trainer's Ledger</h1>
@@ -277,9 +281,6 @@ function App() {
             <button className="btn-ghost-sm" onClick={()=>generatePDF(stats, trainerName, statusMap)}>
               <span>⬇</span> PDF
             </button>
-            <button className="btn-ghost-sm danger" onClick={resetAll}>
-              <span>⌫</span> Limpar
-            </button>
             <button className="btn-ghost-sm" onClick={exportData}>
               <span>↑</span> Exportar
             </button>
@@ -293,6 +294,9 @@ function App() {
               style={{display:'none'}}
               onChange={e=>{ importData(e.target.files[0]); e.target.value=''; }}
             />
+            <button className="btn-ghost-sm danger" onClick={resetAll}>
+              <span>⌫</span> Limpar
+            </button>
           </div>
         </section>
 
@@ -384,6 +388,7 @@ function App() {
       {showStats && <StatsPanel games={scopedGames} statusMap={statusMap} onClose={()=>setShowStats(false)}/>}
       {showShare && <ShareCard theme={theme} stats={stats} trainerName={trainerName} onClose={()=>setShowShare(false)}/>}
       {showArticle && <ArticleModal onClose={()=>setShowArticle(false)}/>}
+      {easterActive && <EasterEgg onClose={closeEaster}/>}
       {drawerGame && (        <DetailDrawer
           game={drawerGame}
           status={statusMap[drawerGame.id] || 'none'}
@@ -432,71 +437,109 @@ function GameCard({ game, status, hasNote, onCycle, onClick }) {
 function generatePDF(stats, trainerName, statusMap) {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
-  const W = 210, H = 297, ML = 15, MR = 15, CW = W - ML - MR;
+  const W = 210, H = 297, ML = 16, MR = 16;
   const theme = THEMES[loadState().themeId || 'luxury'];
   const accent = theme.vars['--accent'];
-  const hex2rgb = h => { const n = parseInt(h.slice(1),16); return [(n>>16)&255, (n>>8)&255, n&255]; };
+  const hex2rgb = h => {
+    const clean = h.replace('#','');
+    const n = parseInt(clean, 16);
+    return [(n>>16)&255, (n>>8)&255, n&255];
+  };
   const [ar,ag,ab] = hex2rgb(accent);
   const dateStr = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
   let y = 0;
 
+  const setAccent  = () => doc.setTextColor(ar,ag,ab);
+  const setDark    = () => doc.setTextColor(30,22,10);
+  const setMid     = () => doc.setTextColor(90,80,60);
+  const setLight   = () => doc.setTextColor(130,120,100);
+  const fillAccent = () => doc.setFillColor(ar,ag,ab);
+  const fillDark   = () => doc.setFillColor(18,14,8);
+  const strokeLight= () => { doc.setDrawColor(200,185,160); doc.setLineWidth(0.3); };
+
   const drawHeader = () => {
-    doc.setFillColor(18, 14, 8); doc.rect(0,0,W,44,'F');
-    doc.setFillColor(ar, ag, ab); doc.rect(0,44,W,1.5,'F');
-    doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.setTextColor(ar,ag,ab);
-    doc.text("Trainer's Ledger", ML, 20);
-    doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(170,160,140);
-    doc.text(trainerName || 'Trainer', ML, 28);
-    doc.setFontSize(8); doc.setTextColor(140,130,110);
-    doc.text(`${stats.owned}/${stats.total} · ${Math.round(stats.owned/stats.total*100)}% · ${dateStr}`, W-MR, 28, {align:'right'});
+    fillDark(); doc.rect(0,0,W,46,'F');
+    fillAccent(); doc.rect(0,46,W,1.5,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(20); setAccent();
+    doc.text("Trainer's Ledger", ML, 22);
+    doc.setFont('helvetica','normal'); doc.setFontSize(10);
+    doc.setTextColor(170,160,140);
+    doc.text(trainerName || 'Trainer', ML, 32);
+    doc.setFontSize(8); doc.setTextColor(130,120,100);
+    const pct = stats.total ? Math.round(stats.owned/stats.total*100) : 0;
+    doc.text(`${stats.owned}/${stats.total} · ${pct}% · ${dateStr}`, W-MR, 32, {align:'right'});
   };
 
   drawHeader();
   y = 58;
 
-  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(40,30,10);
-  doc.text('Resumo', ML, y); y += 6;
-  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(80,70,50);
+  // Summary
+  doc.setFont('helvetica','bold'); doc.setFontSize(11); setDark();
+  doc.text('Resumo da Coleção', ML, y); y += 7;
   STATUS_ORDER.filter(k=>k!=='none').forEach(k => {
     const s = STATUS[k], c = stats.byStatus[k] || 0;
-    doc.text(`${s.label}: ${c}`, ML, y); y += 5;
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); setMid();
+    doc.text(`${s.label}:`, ML + 3, y);
+    doc.setFont('helvetica','bold'); setDark();
+    doc.text(String(c), ML + 32, y);
+    y += 5.5;
   });
-  y += 4;
+  y += 5;
 
+  // Games list
   const allGames = [...window.MAIN, ...window.SPINOFF];
   const grouped = {};
   allGames.forEach(g => { (grouped[g.group] = grouped[g.group] || []).push(g); });
 
   Object.entries(grouped).forEach(([grp, items]) => {
-    if (y > H - 30) { doc.addPage(); drawHeader(); y = 58; }
-    doc.setFillColor(ar,ag,ab);
-    doc.rect(ML, y, 2, 6, 'F');
-    doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(40,30,10);
-    doc.text(grp, ML + 4, y + 4.5); y += 8;
+    if (y > H - 32) { doc.addPage(); drawHeader(); y = 58; }
+
+    // Group header bar
+    fillAccent();
+    doc.rect(ML, y - 4, 3, 6.5, 'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(10); setDark();
+    doc.text(grp, ML + 5, y + 1);
+    y += 8;
 
     items.forEach(g => {
-      if (y > H - 20) { doc.addPage(); drawHeader(); y = 58; }
+      if (y > H - 22) { doc.addPage(); drawHeader(); y = 58; }
       const st = statusMap[g.id] || 'none';
-      const s = STATUS[st];
       const owned = OWNED_STATUSES.has(st);
-      doc.setDrawColor(200,190,170);
-      doc.setLineWidth(0.2);
-      doc.rect(ML, y-3.5, 4, 4, 'S');
+
+      // Checkbox outline
+      strokeLight();
+      doc.rect(ML, y - 4, 4.5, 4.5, 'S');
+
+      // Checkbox fill if owned
       if (owned) {
-        doc.setFillColor(ar,ag,ab);
-        doc.rect(ML+0.5, y-3, 3, 3, 'F');
+        fillAccent();
+        doc.rect(ML + 0.6, y - 3.4, 3.3, 3.3, 'F');
+        // Checkmark
+        doc.setDrawColor(18,14,8); doc.setLineWidth(0.5);
+        doc.line(ML + 1.1, y - 1.8, ML + 2.0, y - 0.9);
+        doc.line(ML + 2.0, y - 0.9, ML + 3.6, y - 3.0);
       }
-      doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(30,22,10);
-      doc.text(g.name, ML + 7, y);
-      doc.setFontSize(7.5); doc.setTextColor(120,110,90);
-      doc.text(`${g.platform} · ${g.year}`, ML + 100, y);
+
+      // Game name
+      doc.setFont('helvetica','normal'); doc.setFontSize(9); setDark();
+      const maxNameW = 85;
+      const nameText = doc.splitTextToSize(g.name, maxNameW)[0];
+      doc.text(nameText, ML + 7, y);
+
+      // Platform + year
+      doc.setFontSize(7.5); setLight();
+      doc.text(`${g.platform} · ${g.year}`, ML + 96, y);
+
+      // Status label
       if (st !== 'none') {
-        doc.setTextColor(ar,ag,ab);
-        doc.text(s.label, W-MR, y, {align:'right'});
+        setAccent();
+        doc.setFontSize(7.5); doc.setFont('helvetica','bold');
+        doc.text(STATUS[st].label, W - MR, y, {align:'right'});
       }
-      y += 5.2;
+
+      y += 5.8;
     });
-    y += 3;
+    y += 4;
   });
 
   doc.save(`trainers-ledger-${Date.now()}.pdf`);
