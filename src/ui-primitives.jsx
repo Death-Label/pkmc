@@ -175,7 +175,30 @@ function PokeballOrb({ theme, size = 54 }) {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   StatusCycle
+   StatusToggle — botão principal: clica → toggle none⇄have
+   Modo híbrido recomendado por testes de usuário.
+══════════════════════════════════════════════════════════════ */
+function StatusToggle({ value, onChange, size = 26 }) {
+  const s = STATUS[value || 'none'];
+  const toggle = () => {
+    if (!value || value === 'none') onChange('have');
+    else onChange('none');
+  };
+  return (
+    <button
+      className={`status-cycle status-${s.key}`}
+      onClick={(e)=>{ e.stopPropagation(); toggle(); }}
+      onContextMenu={(e)=>{ e.preventDefault(); onChange('none'); }}
+      title={value && value !== 'none' ? `${s.label} — clique para limpar` : 'Clique para marcar como Tenho'}
+      style={{ width: size, height: size }}
+    >
+      <span className="status-glyph">{s.short}</span>
+    </button>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   StatusCycle (legacy — mantido para retro-compat)
 ══════════════════════════════════════════════════════════════ */
 function StatusCycle({ value, onChange, size = 26 }) {
   const idx = STATUS_ORDER.indexOf(value || 'none');
@@ -256,15 +279,18 @@ function ParticleCanvas({ theme, density = 60 }) {
           this.vy     = -(Math.random() * 0.7 + 0.2);   // sobe com velocidades variadas
           this.rot    = Math.random() * Math.PI * 2;
           this.rotSpd = (Math.random() - 0.5) * 0.03;
-          // vida longa para cruzar a tela toda
+          // todas começam invisíveis e ganham alpha gradual (sem pop)
           this.maxL   = Math.random() * 500 + 300;
-          this.life   = Math.floor(Math.random() * this.maxL); // começa em fase aleatória
+          this.life   = 0;
+          this.alpha  = 0;
+          this.spawnDelay = Math.random() * 240; // espalha entradas no tempo (apenas no spawn inicial)
           this.maxA   = Math.random() * 0.6 + 0.2;
           this.color  = cols[Math.floor(Math.random() * cols.length)];
           this.shape  = Math.random() > 0.4 ? 'diamond' : 'circle';
         }
         constructor() { this.reset(); }
         tick() {
+          if (this.spawnDelay > 0) { this.spawnDelay--; this.alpha = 0; return; }
           this.x   += this.vx;
           this.y   += this.vy;
           this.rot += this.rotSpd;
@@ -315,14 +341,17 @@ function ParticleCanvas({ theme, density = 60 }) {
           this.sway   = Math.random() * 0.8 + 0.2;
           this.phase  = Math.random() * Math.PI * 2;
           this.wobble = Math.random() * 0.03 + 0.015;
-          // vida variada — alguns aparecem e somem rápido, outros duram mais
+          // todas começam invisíveis e ganham alpha gradual (sem pop)
           this.maxL   = Math.random() * 400 + 150;
-          this.life   = Math.floor(Math.random() * this.maxL);
+          this.life   = 0;
+          this.alpha  = 0;
+          this.spawnDelay = Math.random() * 240;
           this.maxA   = Math.random() * 0.55 + 0.15;
           this.color  = cols[Math.floor(Math.random() * cols.length)];
         }
         constructor() { this.reset(); }
         tick() {
+          if (this.spawnDelay > 0) { this.spawnDelay--; this.alpha = 0; return; }
           this.x += this.vx + Math.sin(this.life * this.wobble + this.phase) * this.sway;
           this.y += this.vy;
           this.life++;
@@ -376,13 +405,17 @@ function ParticleCanvas({ theme, density = 60 }) {
           this.drift  = Math.random() * 0.02 + 0.008;
           this.phase  = Math.random() * Math.PI * 2;
           this.maxL   = Math.random() * 500 + 250;
-          this.life   = Math.floor(Math.random() * this.maxL);
+          this.life   = 0;
+          this.alpha  = 0;
+          this.scale  = 0;
+          this.spawnDelay = Math.random() * 240;
           this.maxA   = Math.random() * 0.5 + 0.2;
           this.color  = cols[Math.floor(Math.random() * cols.length)];
           this.scale  = 1;
         }
         constructor() { this.reset(); }
         tick() {
+          if (this.spawnDelay > 0) { this.spawnDelay--; this.alpha = 0; return; }
           this.x += this.vx + Math.sin(this.life * this.drift + this.phase) * 0.4;
           this.y += this.vy + Math.cos(this.life * this.drift * 0.7 + this.phase) * 0.2;
           this.life++;
@@ -452,4 +485,4 @@ function ParticleCanvas({ theme, density = 60 }) {
   return <canvas ref={ref} className="particles"/>;
 }
 
-Object.assign(window, { PokeballOrb, StatusCycle, StatusMenu, ParticleCanvas });
+Object.assign(window, { PokeballOrb, StatusCycle, StatusToggle, StatusMenu, ParticleCanvas });

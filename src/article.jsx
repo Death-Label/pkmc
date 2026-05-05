@@ -238,7 +238,10 @@ function ArticleModal({ onClose }) {
   const goTo = (id) => {
     const el = document.getElementById(id);
     if (el && contentRef.current) {
-      contentRef.current.scrollTop = el.offsetTop - 28;
+      const containerRect = contentRef.current.getBoundingClientRect();
+      const elRect = el.getBoundingClientRect();
+      const offset = elRect.top - containerRect.top + contentRef.current.scrollTop;
+      contentRef.current.scrollTop = offset - 12;
     }
   };
 

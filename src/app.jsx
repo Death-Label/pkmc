@@ -4,6 +4,21 @@
 
 const LS_KEY = 'pokecollector-v3';
 
+// Ordem cronológica de lançamento das plataformas Nintendo
+const PLATFORM_ORDER = {
+  'Game Boy':         1989,
+  'Nintendo 64':      1996,
+  'Game Boy Color':   1998,
+  'Nintendo GameCube':2001,
+  'Game Boy Advance': 2001,
+  'Nintendo DS':      2004,
+  'Wii':              2006,
+  'Nintendo 3DS':     2011,
+  'Wii U':            2012,
+  'Nintendo Switch':  2017,
+};
+const platformYear = (p) => PLATFORM_ORDER[p] ?? 9999;
+
 // Guard defensivo caso algum arquivo de dados falhe ao carregar
 window.MAIN            = window.MAIN            || [];
 window.SPINOFF         = window.SPINOFF         || [];
@@ -61,7 +76,8 @@ function App() {
 
   const platforms = useMemo(() => {
     const set = new Set(activeList.map(g => g.platform));
-    return ['all', ...Array.from(set)];
+    const sorted = Array.from(set).sort((a,b) => platformYear(a) - platformYear(b));
+    return ['all', ...sorted];
   }, [activeList]);
 
   const processed = useMemo(() => {
@@ -84,7 +100,7 @@ function App() {
     if (sort === 'year-asc')  list = [...list].sort((a,b)=>a.year-b.year);
     if (sort === 'year-desc') list = [...list].sort((a,b)=>b.year-a.year);
     if (sort === 'az')        list = [...list].sort((a,b)=>a.name.localeCompare(b.name));
-    if (sort === 'platform')  list = [...list].sort((a,b)=>a.platform.localeCompare(b.platform) || a.year-b.year);
+    if (sort === 'platform')  list = [...list].sort((a,b)=>(platformYear(a.platform)-platformYear(b.platform)) || (a.year-b.year));
     // Consoles and spinoff tabs default: sort by year so groups appear chronologically
     if ((tab === 'consoles' || tab === 'spinoff') && sort === 'default') list = [...list].sort((a,b)=>a.year-b.year);
     return list;
@@ -150,6 +166,51 @@ function App() {
 
   const importRef = useRef(null);
 
+  // Generate share code from current state (only trainerName + statusMap as requested)
+  const generateCode = () => {
+    const payload = { n: trainerName, s: statusMap };
+    const json = JSON.stringify(payload);
+    // UTF-8 safe base64
+    const utf8 = unescape(encodeURIComponent(json));
+    return 'TL1.' + btoa(utf8);
+  };
+
+  // Import code → applies trainerName and statusMap
+  const [showImport, setShowImport] = useState(false);
+  const importFromCode = (code) => {
+    try {
+      const trimmed = (code || '').trim();
+      if (!trimmed.startsWith('TL1.')) throw new Error('bad-prefix');
+      const b64 = trimmed.slice(4);
+      const utf8 = atob(b64);
+      const json = decodeURIComponent(escape(utf8));
+      const data = JSON.parse(json);
+      if (data.n) setTrainerName(data.n);
+      if (data.s) setStatusMap(data.s);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  };
+
+  // Mobile detection
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 760);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 760);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  // Lock body scroll when mobile menu open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [mobileMenuOpen]);
+
   return (
     <>
       <ParticleCanvas theme={theme} density={theme.mood === 'light' ? 40 : 70}/>
@@ -167,41 +228,102 @@ function App() {
             </div>
           </div>
           <div className="topbar-actions">
-            <button className="art-header-btn" onClick={()=>setShowArticle(true)}>
-              <span className="art-btn-ruble">₽</span> Guia de Investimento
-            </button>
-            <input
-              className="trainer-input"
-              value={trainerName}
-              onChange={e=>setTrainerName(e.target.value)}
-              placeholder="Seu nome"
-              maxLength={24}
-            />
-            <div className="theme-picker">
-              <button className="theme-btn" onClick={()=>setThemeOpen(!themeOpen)} title="Mudar tema">
-                <span className="theme-swatch" style={{background: theme.vars['--accent']}}/>
-                <span>{theme.name}</span>
-                <span className="theme-caret">▾</span>
+            {!isMobile && (
+              <>
+                <button className="art-header-btn" onClick={()=>setShowArticle(true)}>
+                  <span className="art-btn-ruble">₽</span> Guia de Investimento
+                </button>
+                <div className="trainer-field">
+                  <input
+                    className="trainer-input"
+                    value={trainerName}
+                    onChange={e=>setTrainerName(e.target.value)}
+                    placeholder="Digite seu nome..."
+                    maxLength={24}
+                  />
+                </div>
+                <div className="theme-picker">
+                  <button className="theme-btn" onClick={()=>setThemeOpen(!themeOpen)} title="Mudar tema">
+                    <span className="theme-swatch" style={{background: theme.vars['--accent']}}/>
+                    <span>{theme.name}</span>
+                    <span className="theme-caret">▾</span>
+                  </button>
+                  {themeOpen && (
+                    <div className="theme-menu" onMouseLeave={()=>setThemeOpen(false)}>
+                      {Object.values(THEMES).map(t => (
+                        <button key={t.id}
+                          className={`theme-menu-item ${themeId===t.id?'active':''}`}
+                          onClick={()=>{ setThemeId(t.id); setThemeOpen(false); }}>
+                          <span className="theme-swatch" style={{background: t.vars['--accent']}}/>
+                          <div>
+                            <div className="theme-menu-name">{t.name}</div>
+                            <div className="theme-menu-sub">{t.tagline} · {t.mood}</div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+            {isMobile && (
+              <button
+                className="mobile-menu-btn"
+                onClick={()=>setMobileMenuOpen(true)}
+                aria-label="Abrir menu"
+              >
+                <span/><span/><span/>
               </button>
-              {themeOpen && (
-                <div className="theme-menu" onMouseLeave={()=>setThemeOpen(false)}>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* ═══════ MOBILE DRAWER ═══════ */}
+      {isMobile && mobileMenuOpen && (
+        <div className="mobile-drawer-overlay" onClick={()=>setMobileMenuOpen(false)}>
+          <div className="mobile-drawer" onClick={e=>e.stopPropagation()}>
+            <div className="mobile-drawer-head">
+              <span className="mobile-drawer-title">Menu</span>
+              <button className="mobile-drawer-close" onClick={()=>setMobileMenuOpen(false)}>×</button>
+            </div>
+            <div className="mobile-drawer-body">
+              <div className="mobile-drawer-section">
+                <input
+                  className="trainer-input mobile"
+                  value={trainerName}
+                  onChange={e=>setTrainerName(e.target.value)}
+                  placeholder="Digite seu nome..."
+                  maxLength={24}
+                />
+              </div>
+
+              <div className="mobile-drawer-section">
+                <label className="trainer-label">Tema</label>
+                <div className="mobile-theme-grid">
                   {Object.values(THEMES).map(t => (
                     <button key={t.id}
-                      className={`theme-menu-item ${themeId===t.id?'active':''}`}
-                      onClick={()=>{ setThemeId(t.id); setThemeOpen(false); }}>
+                      className={`mobile-theme-item ${themeId===t.id?'active':''}`}
+                      onClick={()=>setThemeId(t.id)}>
                       <span className="theme-swatch" style={{background: t.vars['--accent']}}/>
                       <div>
                         <div className="theme-menu-name">{t.name}</div>
-                        <div className="theme-menu-sub">{t.tagline} · {t.mood}</div>
+                        <div className="theme-menu-sub">{t.tagline}</div>
                       </div>
                     </button>
                   ))}
                 </div>
-              )}
+              </div>
+
+              <div className="mobile-drawer-section">
+                <button className="art-header-btn mobile" onClick={()=>{setShowArticle(true); setMobileMenuOpen(false);}}>
+                  <span className="art-btn-ruble">₽</span> Guia de Investimento
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </header>
+      )}
 
       <main className="app">
         {/* ═══════ PROGRESS / MODE TOGGLE ═══════ */}
@@ -275,25 +397,15 @@ function App() {
             <button className="btn-ghost-sm" onClick={()=>setShowShare(true)}>
               <span>↗</span> Compartilhar
             </button>
+            <button className="btn-ghost-sm" onClick={()=>setShowImport(true)}>
+              <span>⇩</span> Importar Código
+            </button>
             <button className="btn-ghost-sm" onClick={()=>window.print()}>
               <span>⎙</span> Imprimir
             </button>
             <button className="btn-ghost-sm" onClick={()=>generatePDF(stats, trainerName, statusMap)}>
               <span>⬇</span> PDF
             </button>
-            <button className="btn-ghost-sm" onClick={exportData}>
-              <span>↑</span> Exportar
-            </button>
-            <button className="btn-ghost-sm" onClick={()=>importRef.current?.click()}>
-              <span>↓</span> Importar
-            </button>
-            <input
-              ref={importRef}
-              type="file"
-              accept=".json"
-              style={{display:'none'}}
-              onChange={e=>{ importData(e.target.files[0]); e.target.value=''; }}
-            />
             <button className="btn-ghost-sm danger" onClick={resetAll}>
               <span>⌫</span> Limpar
             </button>
@@ -386,7 +498,8 @@ function App() {
       </main>
 
       {showStats && <StatsPanel games={scopedGames} statusMap={statusMap} onClose={()=>setShowStats(false)}/>}
-      {showShare && <ShareCard theme={theme} stats={stats} trainerName={trainerName} onClose={()=>setShowShare(false)}/>}
+      {showShare && <ShareCard theme={theme} stats={stats} trainerName={trainerName} shareCode={generateCode()} onClose={()=>setShowShare(false)}/>}
+      {showImport && <ImportCodeModal onImport={importFromCode} onClose={()=>setShowImport(false)}/>}
       {showArticle && <ArticleModal onClose={()=>setShowArticle(false)}/>}
       {easterActive && <EasterEgg onClose={closeEaster}/>}
       {drawerGame && (        <DetailDrawer
@@ -405,12 +518,39 @@ function App() {
 function GameCard({ game, status, hasNote, onCycle, onClick }) {
   const s = STATUS[status];
   const owned = OWNED_STATUSES.has(status);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onDoc = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
+    };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [menuOpen]);
+
   return (
     <div
       className={`game-card status-${status} ${owned?'owned':''}`}
       onClick={onClick}
     >
-      <StatusCycle value={status} onChange={onCycle}/>
+      <div className="status-controls" onClick={e=>e.stopPropagation()}>
+        <StatusToggle value={status} onChange={onCycle}/>
+        <div className="status-more-wrap" ref={menuRef}>
+          <button
+            className="status-more-btn"
+            onClick={(e)=>{ e.stopPropagation(); setMenuOpen(o => !o); }}
+            title="Outros status"
+            aria-label="Outros status"
+          >⋯</button>
+          {menuOpen && (
+            <div className="status-popover" onClick={e=>e.stopPropagation()}>
+              <StatusMenu value={status} onChange={(v)=>{ onCycle(v); setMenuOpen(false); }}/>
+            </div>
+          )}
+        </div>
+      </div>
       <div className="game-info">
         <div className="game-name">{game.name}</div>
         <div className="game-meta">

@@ -48,7 +48,7 @@ function DetailDrawer({ game, status, note, onStatus, onNote, onClose }) {
 /* ════════════════════════════════════════════════════════════
    SHARE CARD
 ════════════════════════════════════════════════════════════ */
-function ShareCard({ theme, stats, trainerName, onClose }) {
+function ShareCard({ theme, stats, trainerName, shareCode, onClose }) {
   const pct = stats.total ? Math.round(stats.owned/stats.total*100) : 0;
   const canvasRef = useRef(null);
   const [copied, setCopied] = useState(false);
@@ -209,9 +209,91 @@ function ShareCard({ theme, stats, trainerName, onClose }) {
         <div className="share-actions">
           <button className="btn-primary" onClick={download}>Baixar imagem</button>
         </div>
+
+        {shareCode && (
+          <div className="share-code-block">
+            <div className="share-code-head">
+              <span className="share-code-title">Código de Sincronização</span>
+              <span className="share-code-sub">Copie este código e importe em outro Trainer's Ledger zerado para transferir seu nome e jogos marcados.</span>
+            </div>
+            <ShareCodeBox code={shareCode}/>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-Object.assign(window, { DetailDrawer, ShareCard });
+function ShareCodeBox({ code }) {
+  const [copied, setCopied] = useState(false);
+  const taRef = useRef(null);
+  const copy = () => {
+    if (taRef.current) {
+      taRef.current.select();
+      taRef.current.setSelectionRange(0, code.length);
+    }
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(code).then(() => {
+        setCopied(true); setTimeout(() => setCopied(false), 2200);
+      }).catch(() => { document.execCommand('copy'); setCopied(true); setTimeout(()=>setCopied(false), 2200); });
+    } else {
+      try { document.execCommand('copy'); setCopied(true); setTimeout(()=>setCopied(false),2200); } catch(_){}
+    }
+  };
+  return (
+    <div className="share-code-wrap">
+      <textarea ref={taRef} className="share-code-area" value={code} readOnly onClick={e=>e.target.select()}/>
+      <button className={`share-code-btn ${copied?'copied':''}`} onClick={copy}>
+        {copied ? '✓ Copiado!' : 'Copiar'}
+      </button>
+    </div>
+  );
+}
+
+/* ═══════ IMPORT MODAL ═══════ */
+function ImportCodeModal({ onImport, onClose }) {
+  const [val, setVal] = useState('');
+  const [err, setErr] = useState(false);
+  const [ok, setOk]   = useState(false);
+  const submit = () => {
+    const success = onImport(val);
+    if (success) {
+      setOk(true); setErr(false);
+      setTimeout(() => onClose(), 900);
+    } else {
+      setErr(true); setOk(false);
+    }
+  };
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+  return (
+    <div className="share-overlay" onClick={onClose}>
+      <div className="import-modal" onClick={e=>e.stopPropagation()}>
+        <div className="share-head">
+          <h2>Importar código</h2>
+          <button className="share-close" onClick={onClose}>✕</button>
+        </div>
+        <div className="import-body">
+          <p className="import-help">Cole abaixo o código gerado em outro Trainer's Ledger. Seu <em>nome</em> e <em>jogos marcados</em> serão aplicados a esta instância.</p>
+          <textarea
+            className={`import-textarea ${err?'error':''}`}
+            value={val}
+            onChange={e=>{ setVal(e.target.value); setErr(false); }}
+            placeholder="TL1.eyJuIjoi..."
+            autoFocus
+          />
+          {err && <div className="import-msg error">Código inválido. Verifique se foi copiado por completo.</div>}
+          {ok  && <div className="import-msg ok">Importado com sucesso!</div>}
+        </div>
+        <div className="share-actions">
+          <button className="btn-primary" onClick={submit} disabled={!val.trim()}>Importar</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, { DetailDrawer, ShareCard, ImportCodeModal });

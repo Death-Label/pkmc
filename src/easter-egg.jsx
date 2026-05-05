@@ -28,7 +28,7 @@ function EasterEgg({ onClose }) {
   useEffect(() => {
     const audio = new Audio('mef.mp3');
     audio.loop = true;
-    audio.volume = 0.7;
+    audio.volume = 0.49;
     audio.play().catch(() => {});
     audioRef.current = audio;
     return () => {
