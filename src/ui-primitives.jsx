@@ -12,7 +12,7 @@ const STATUS = {
   playing: { key:'playing', label:'Jogando',   short:'▶',  color:'var(--chip-playing)', bg:'rgba(255,138,61,.14)' },
   done:    { key:'done',    label:'Zerado',    short:'★',  color:'var(--chip-done)',    bg:'rgba(154,211,124,.14)' },
 };
-const STATUS_ORDER = ['none','want','have','playing','done'];
+const STATUS_ORDER = ['none','have','want','playing','done'];
 const OWNED_STATUSES = new Set(['have','playing','done']);
 
 window.STATUS = STATUS;

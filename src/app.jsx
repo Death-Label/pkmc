@@ -36,7 +36,7 @@ function App() {
   const [themeId, setThemeId] = useState(() => loadState().themeId || 'luxury');
   const [statusMap, setStatusMap] = useState(() => loadState().statusMap || {});
   const [notes, setNotes] = useState(() => loadState().notes || {});
-  const [trainerName, setTrainerName] = useState(() => loadState().trainerName || 'Trainer');
+  const [trainerName, setTrainerName] = useState(() => loadState().trainerName ?? '');
   const [tab, setTab] = useState('main');
 
   // Reset platform filter and sort when switching tabs
@@ -238,7 +238,7 @@ function App() {
                     className="trainer-input"
                     value={trainerName}
                     onChange={e=>setTrainerName(e.target.value)}
-                    placeholder="Digite seu nome..."
+                    placeholder="Trainer's name"
                     maxLength={24}
                   />
                 </div>
@@ -293,7 +293,7 @@ function App() {
                   className="trainer-input mobile"
                   value={trainerName}
                   onChange={e=>setTrainerName(e.target.value)}
-                  placeholder="Digite seu nome..."
+                  placeholder="Trainer's name"
                   maxLength={24}
                 />
               </div>
@@ -399,9 +399,6 @@ function App() {
             </button>
             <button className="btn-ghost-sm" onClick={()=>setShowImport(true)}>
               <span>⇩</span> Importar Código
-            </button>
-            <button className="btn-ghost-sm" onClick={()=>window.print()}>
-              <span>⎙</span> Imprimir
             </button>
             <button className="btn-ghost-sm" onClick={()=>generatePDF(stats, trainerName, statusMap)}>
               <span>⬇</span> PDF
@@ -518,17 +515,6 @@ function App() {
 function GameCard({ game, status, hasNote, onCycle, onClick }) {
   const s = STATUS[status];
   const owned = OWNED_STATUSES.has(status);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef(null);
-
-  useEffect(() => {
-    if (!menuOpen) return;
-    const onDoc = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
-    };
-    document.addEventListener('mousedown', onDoc);
-    return () => document.removeEventListener('mousedown', onDoc);
-  }, [menuOpen]);
 
   return (
     <div
@@ -536,20 +522,7 @@ function GameCard({ game, status, hasNote, onCycle, onClick }) {
       onClick={onClick}
     >
       <div className="status-controls" onClick={e=>e.stopPropagation()}>
-        <StatusToggle value={status} onChange={onCycle}/>
-        <div className="status-more-wrap" ref={menuRef}>
-          <button
-            className="status-more-btn"
-            onClick={(e)=>{ e.stopPropagation(); setMenuOpen(o => !o); }}
-            title="Outros status"
-            aria-label="Outros status"
-          >⋯</button>
-          {menuOpen && (
-            <div className="status-popover" onClick={e=>e.stopPropagation()}>
-              <StatusMenu value={status} onChange={(v)=>{ onCycle(v); setMenuOpen(false); }}/>
-            </div>
-          )}
-        </div>
+        <StatusCycle value={status} onChange={onCycle}/>
       </div>
       <div className="game-info">
         <div className="game-name">{game.name}</div>

@@ -41,7 +41,7 @@ window.THEMES = {
   },
   spectral: {
     id: 'spectral',
-    name: 'Fantasmagórico',
+    name: 'Ghost',
     tagline: 'Véu Roxo da Meia-Noite',
     mood: 'dark',
     vars: {

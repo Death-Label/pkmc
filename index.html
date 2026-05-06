@@ -18,7 +18,7 @@
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
-<link rel="stylesheet" href="src/app.css?v=18">
+<link rel="stylesheet" href="src/app.css?v=20">
 <style>
 /* ═══════ ARTICLE MODAL ═══════ */
 .art-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.6);backdrop-filter:blur(10px);display:flex;align-items:stretch;justify-content:center;animation:fadeIn .22s}
@@ -92,7 +92,7 @@
 .art-disclaimer{font-size:.76rem;color:var(--text3);line-height:1.65;padding:14px 16px;border:1px solid var(--border);border-radius:8px;margin-top:24px;font-family:'JetBrains Mono',monospace}
 .art-sources{margin-top:20px}
 .art-sources-title{font-family:'JetBrains Mono',monospace;font-size:.64rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text2);margin-bottom:10px}
-.art-header-btn{display:inline-flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:9px 14px;font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:600;color:var(--text);transition:border-color .18s, background .18s, color .18s;letter-spacing:.3px;cursor:pointer;animation:artBtnGlow 3s ease-in-out infinite}
+.art-header-btn{display:inline-flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:9px 14px;font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:600;color:var(--text);transition:border-color .18s, background .18s, color .18s;letter-spacing:.3px;cursor:pointer;animation:artBtnGlow 3s ease-in-out 3 forwards}
 .art-header-btn:hover{border-color:var(--accent);background:var(--accentSoft);color:var(--accent)}
 .art-btn-ruble{display:inline-block;animation:rubleWobble 3.5s ease-in-out infinite;font-size:.9rem}
 @keyframes rubleWobble{0%,55%,100%{transform:rotate(0deg) scale(1)}65%{transform:rotate(-14deg) scale(1.15)}75%{transform:rotate(10deg) scale(1.1)}85%{transform:rotate(-6deg) scale(1.05)}95%{transform:rotate(3deg) scale(1.02)}}
@@ -103,18 +103,18 @@
 
 <!-- Data -->
 <script src="data/games.js?v=4"></script>
-<script src="data/themes.js?v=3"></script>
+<script src="data/themes.js?v=4"></script>
 </head>
 <body>
 
 <div id="root"></div>
 
-<script type="text/babel" src="src/ui-primitives.jsx?v=6"></script>
+<script type="text/babel" src="src/ui-primitives.jsx?v=7"></script>
 <script type="text/babel" src="src/easter-egg.jsx?v=5"></script>
 <script type="text/babel" src="src/article.jsx?v=8"></script>
 <script type="text/babel" src="src/stats.jsx?v=4"></script>
 <script type="text/babel" src="src/drawer-share.jsx?v=5"></script>
-<script type="text/babel" src="src/app.jsx?v=10"></script>
+<script type="text/babel" src="src/app.jsx?v=15"></script>
 
 </body>
 </html>
