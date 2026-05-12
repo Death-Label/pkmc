@@ -214,6 +214,7 @@ function App() {
   return (
     <>
       <ParticleCanvas theme={theme} density={theme.mood === 'light' ? 40 : 70}/>
+      <GhostOverlay active={themeId === 'spectral'}/>
 
       {/* ═══════ TOP BAR ═══════ */}
       <header className="topbar">

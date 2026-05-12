@@ -70,7 +70,7 @@ window.MAIN = [
 ================================================================ */
 window.SPINOFF = [
   /* Stadium & Batalha */
-  { id:'st1',    name:'Pokémon Stadium',                            platform:'Nintendo 64',        year:1999, group:'Stadium & Batalha' },
+  { id:'st1',    name:'Pokémon Stadium',                            platform:'Nintendo 64',        year:1998, group:'Stadium & Batalha' },
   { id:'stjp',   name:'Pokémon Stadium (Japan)',                    platform:'Nintendo 64',        year:1998, region:'JP only', group:'Stadium & Batalha',
     tip:'Completamente diferente do Stadium que chegou nos EUA. Tem apenas 42 Pokémon jogáveis e ficou exclusivo do Japão. O que saiu nos EUA e Europa como "Pokémon Stadium" é, na verdade, o "Pokémon Stadium 2" japonês — ou seja, os nomes cruzaram o Pacífico embaralhados.' },
   { id:'st2',    name:'Pokémon Stadium 2',                          platform:'Nintendo 64',        year:2000, group:'Stadium & Batalha' },
@@ -79,7 +79,7 @@ window.SPINOFF = [
   { id:'chan',   name:'Pokémon Channel',                            platform:'Nintendo GameCube',  year:2003, group:'Stadium & Batalha' },
   { id:'xd',     name:'Pokémon XD: Gale of Darkness',               platform:'Nintendo GameCube',  year:2005, group:'Stadium & Batalha' },
   { id:'br',     name:'Pokémon Battle Revolution',                  platform:'Wii',                year:2006, group:'Stadium & Batalha' },
-  { id:'pkt',    name:'Pokkén Tournament',                          platform:'Wii U',              year:2016, group:'Stadium & Batalha' },
+  { id:'pkt',    name:'Pokkén Tournament',                          platform:'Wii U',              year:2015, group:'Stadium & Batalha' },
   { id:'pktdx',  name:'Pokkén Tournament DX',                       platform:'Nintendo Switch',    year:2017, group:'Stadium & Batalha' },
 
   /* Snap */
