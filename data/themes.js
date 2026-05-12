@@ -68,7 +68,7 @@ window.THEMES = {
       '--chip-done':   '#7DE5A5',
       '--sheen':       'linear-gradient(90deg, #4A2A8F, #8A5FE8, #B388FF, #F0DFFF, #B388FF, #8A5FE8, #4A2A8F)',
     },
-    particles: ['#B388FF','#8A5FE8','#D0AAFF','#7B5EA7','#E8D5FF'],
+    particles: ['#FF44CC','#E040FF','#FF7DE0','#C26BFF','#FFD0FF'],
     orb: { a: '#B388FF', b: '#4A2A8F', c: '#0F0720' },
     ballTop: '#B388FF',
     ballBot: '#EDE6FF',

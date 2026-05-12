@@ -27,7 +27,7 @@ function GhostOverlay({ active }) {
       const size = 108 + Math.random() * 216;       // +20% maior (108 a 324 px)
       const flipX = Math.random() > 0.5 ? -1 : 1;
       const duration = 4500 + Math.random() * 3500; // 4.5s to 8s
-      const peakOpacity = 0.07 + Math.random() * 0.13; // 0.07 to 0.2
+      const peakOpacity = 0.14 + Math.random() * 0.18; // 0.14 to 0.32
 
       const face = { id, x, y, rotation, size, flipX, duration, peakOpacity };
       setFaces(f => [...f, face]);

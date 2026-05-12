@@ -250,7 +250,93 @@ function StatusMenu({ value, onChange }) {
    spectral → fogos-fátuos fantasmagóricos (chama + balanço sinusoidal)
    mythic   → bolhas de sabão que aparecem e estouram
 ══════════════════════════════════════════════════════════════ */
+function SpectralFire({ theme }) {
+  const clusters = useMemo(() => {
+    const palette = theme.particles;
+    const list = [];
+    // 18 clusters menores espalhados pela tela
+    for (let i = 0; i < 18; i++) {
+      const fireColor = palette[i % palette.length];
+      const x        = 4 + Math.random() * 92;             // 4–96 %
+      const y        = 6 + Math.random() * 86;             // 6–92 %
+      const scale    = 0.28 + Math.random() * 0.42;        // 0.28–0.7 (bem menor que antes)
+      const rotation = (Math.random() - 0.5) * 30;         // -15° a +15°
+      const duration = 0.95 + Math.random() * 0.7;         // 0.95–1.65s (rise)
+      const life     = 5.5 + Math.random() * 4.5;          // 5.5–10s (ciclo fade in/out mais lento)
+      const lifeDelay= -Math.random() * life;              // arranque escalonado
+      const drift    = 2.5 + Math.random() * 2.5;          // 2.5–5s drift
+      const driftDelay = -Math.random() * drift;
+      const dx       = (Math.random() - 0.5) * 60;         // ±30px
+      const dy       = (Math.random() - 0.5) * 50;         // ±25px
+      const particles = Array.from({ length: 50 }, (_, p) => ({
+        delay: Math.random() * duration,
+        left:  (p / 50) * 100,
+      }));
+      list.push({ x, y, scale, rotation, fireColor, duration, life, lifeDelay, drift, driftDelay, dx, dy, particles });
+    }
+    return list;
+  }, [theme.id]);
+
+  return (
+    <div className="wisp-fire-field" aria-hidden="true">
+      {clusters.map((c, i) => (
+        <div
+          key={i}
+          className="wisp-fire-wrap"
+          style={{
+            left: `${c.x}%`,
+            top:  `${c.y}%`,
+            animationDuration: `${c.life}s`,
+            animationDelay:    `${c.lifeDelay}s`,
+          }}
+        >
+          <div
+            className="wisp-fire-drift"
+            style={{
+              animationDuration: `${c.drift}s`,
+              animationDelay:    `${c.driftDelay}s`,
+              '--dx': `${c.dx}px`,
+              '--dy': `${c.dy}px`,
+            }}
+          >
+            <div
+              className="wisp-fire"
+              style={{ transform: `scale(${c.scale}) rotate(${c.rotation}deg)` }}
+            >
+              {c.particles.map((p, j) => (
+                <div
+                  key={j}
+                  className="wisp-particle"
+                  style={{
+                    left: `calc((100% - 5em) * ${p.left / 100})`,
+                    animationDelay:    `${p.delay}s`,
+                    animationDuration: `${c.duration}s`,
+                    backgroundImage:   `radial-gradient(${c.fireColor} 20%, rgba(0,0,0,0) 70%)`,
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ParticleCanvas — efeitos únicos por tema:
+   luxury   → partículas douradas grandes (diamantes + esferas)
+   spectral → Will-o-Wisp DOM-based (chamas magenta ascendentes)
+   mythic   → bolhas de sabão que aparecem e estouram
+══════════════════════════════════════════════════════════════ */
 function ParticleCanvas({ theme, density = 60 }) {
+  if (theme.id === 'spectral') {
+    return <SpectralFire theme={theme} />;
+  }
+  return <ParticleCanvasInner theme={theme} density={density} />;
+}
+
+function ParticleCanvasInner({ theme, density = 60 }) {
   const ref = useRef(null);
 
   useEffect(() => {
@@ -325,71 +411,7 @@ function ParticleCanvas({ theme, density = 60 }) {
       }
       particles = Array.from({ length: density }, () => new GoldDust());
 
-    /* ─── SPECTRAL: fogos-fátuos surgindo e apagando por toda a tela ─── */
-    } else if (theme.id === 'spectral') {
-      class WispFlame {
-        reset() {
-          // posição totalmente aleatória em toda a tela — sem tendência de baixo
-          this.x      = Math.random() * canvas.width;
-          this.y      = Math.random() * canvas.height;
-          // movimento leve — deriva suave em qualquer direção
-          const ang   = Math.random() * Math.PI * 2;
-          const spd   = Math.random() * 0.3 + 0.05;
-          this.vx     = Math.cos(ang) * spd;
-          this.vy     = Math.sin(ang) * spd - 0.15; // leve tendência pra cima mas sutil
-          this.r      = Math.random() * 6 + 3;
-          this.sway   = Math.random() * 0.8 + 0.2;
-          this.phase  = Math.random() * Math.PI * 2;
-          this.wobble = Math.random() * 0.03 + 0.015;
-          // todas começam invisíveis e ganham alpha gradual (sem pop)
-          this.maxL   = Math.random() * 400 + 150;
-          this.life   = 0;
-          this.alpha  = 0;
-          this.spawnDelay = Math.random() * 240;
-          this.maxA   = Math.random() * 0.55 + 0.15;
-          this.color  = cols[Math.floor(Math.random() * cols.length)];
-        }
-        constructor() { this.reset(); }
-        tick() {
-          if (this.spawnDelay > 0) { this.spawnDelay--; this.alpha = 0; return; }
-          this.x += this.vx + Math.sin(this.life * this.wobble + this.phase) * this.sway;
-          this.y += this.vy;
-          this.life++;
-          const t = this.life / this.maxL;
-          // fade suave in/out — sem posição fixa na tela
-          this.alpha = t < 0.18
-            ? (t / 0.18) * this.maxA
-            : t > 0.65
-              ? ((1 - t) / 0.35) * this.maxA
-              : this.maxA;
-          if (this.life >= this.maxL) this.reset();
-        }
-        draw() {
-          ctx.save();
-          ctx.globalAlpha = this.alpha;
-          ctx.translate(this.x, this.y);
-          ctx.rotate(Math.sin(this.life * this.wobble * 1.4 + this.phase) * 0.22);
-          ctx.shadowColor = this.color;
-          ctx.shadowBlur  = this.r * 12;
-          ctx.fillStyle   = this.color;
-          const r = this.r;
-          ctx.beginPath();
-          ctx.moveTo(0, -r * 2.6);
-          ctx.bezierCurveTo( r, -r * 0.9,  r,  r * 0.5, 0,  r * 1.1);
-          ctx.bezierCurveTo(-r,  r * 0.5, -r, -r * 0.9, 0, -r * 2.6);
-          ctx.closePath(); ctx.fill();
-          // miolo brilhante
-          ctx.globalAlpha = this.alpha * 0.6;
-          ctx.fillStyle   = '#F0E0FF';
-          ctx.beginPath();
-          ctx.ellipse(0, -r * 0.5, r * 0.4, r * 0.65, 0, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.restore();
-        }
-      }
-      particles = Array.from({ length: density }, () => new WispFlame());
-
-    /* ─── MYTHIC: bolhas distribuídas por toda a tela ─── */
+        /* ─── MYTHIC: bolhas distribuídas por toda a tela ─── */
     } else {
       class SoapBubble {
         reset() {
